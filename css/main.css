@@ -1224,7 +1224,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #9e47ff;
+  background: #4d9f4a;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -2231,7 +2231,7 @@ body {
   opacity: 0.9;
 }
 body footer > div > div {
-  color: #000;
+  color: #fff;
 }
 .search-pop-overlay {
   background: rgba(0,0,0,0);
