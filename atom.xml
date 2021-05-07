@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>FocoL用来显摆的架子</title>
+  <icon>https://qjc0822.github.io/icon.png</icon>
+  <subtitle>el psy congroo</subtitle>
+  <link href="https://qjc0822.github.io/atom.xml" rel="self"/>
+  
+  <link href="https://qjc0822.github.io/"/>
+  <updated>2021-05-07T08:01:24.566Z</updated>
+  <id>https://qjc0822.github.io/</id>
+  
+  <author>
+    <name>FocoL</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>测试用</title>
+    <link href="https://qjc0822.github.io/2021/05/07/%E6%B5%8B%E8%AF%95%E7%94%A8/"/>
+    <id>https://qjc0822.github.io/2021/05/07/%E6%B5%8B%E8%AF%95%E7%94%A8/</id>
+    <published>2021-05-06T16:21:15.000Z</published>
+    <updated>2021-05-07T08:01:24.566Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;因为显得很厉害所以来个大标题&quot;&gt;&lt;a href=&quot;#因为显得很厉害所以来个大标题&quot; class=&quot;headerlink&quot; title=&quot;因为显得很厉害所以来个大标题&quot;&gt;&lt;/a&gt;因为显得很厉害所以来个大标题&lt;/h1&gt;&lt;h2 id=&quot;再来个中的&quot;&gt;&lt;a</summary>
+        
+      
+    
+    
+    
+    <category term="其它" scheme="https://qjc0822.github.io/categories/%E5%85%B6%E5%AE%83/"/>
+    
+    
+    <category term="测试" scheme="https://qjc0822.github.io/tags/%E6%B5%8B%E8%AF%95/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Firstblog</title>
+    <link href="https://qjc0822.github.io/2021/05/06/Firstblog/"/>
+    <id>https://qjc0822.github.io/2021/05/06/Firstblog/</id>
+    <published>2021-05-06T14:28:22.000Z</published>
+    <updated>2021-05-07T07:59:47.410Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;欢迎来到这里&quot;&gt;&lt;a href=&quot;#欢迎来到这里&quot; class=&quot;headerlink&quot; title=&quot;欢迎来到这里&quot;&gt;&lt;/a&gt;欢迎来到这里&lt;/h1&gt;&lt;p&gt;欢迎来到FocoL的展示架，如你所见本人将会在这里更新一些奇奇怪怪的东西，包括但不限于&lt;/p&gt;
+&lt;h3</summary>
+        
+      
+    
+    
+    
+    <category term="其它" scheme="https://qjc0822.github.io/categories/%E5%85%B6%E5%AE%83/"/>
+    
+    
+    <category term="欢迎" scheme="https://qjc0822.github.io/tags/%E6%AC%A2%E8%BF%8E/"/>
+    
+    <category term="测试" scheme="https://qjc0822.github.io/tags/%E6%B5%8B%E8%AF%95/"/>
+    
+  </entry>
+  
+</feed>
