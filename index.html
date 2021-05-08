@@ -318,7 +318,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-05-08 15:16:24 / 修改时间：21:48:26" itemprop="dateCreated datePublished" datetime="2021-05-08T15:16:24+08:00">2021-05-08</time>
+              <time title="创建时间：2021-05-08 15:16:24 / 修改时间：22:55:51" itemprop="dateCreated datePublished" datetime="2021-05-08T15:16:24+08:00">2021-05-08</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -388,7 +388,7 @@ L_o(p,\omega_o) \approx \cfrac{\int_{\Omega+}V(p,\omega_i)d\omega_i}{\int_{\Omeg
 <p>显然并不是的，对于不同的<strong>遮挡物到阴影</strong>的距离，要给不同大小的filter，这也很好理解，月食不一定能把太阳全部挡住，但你的手可以</p>
 <p>更准确的说法，filter size和相对的，平均的，投射的遮挡物深度有关(relative average projected blocker depth)<del>说人话</del></p>
 <script type="math/tex; mode=display">
-w_{penumbra}=(d_{receiver}-d_{Blocker})·w_{Light}/d_{Blocker}</script><p><img src="C:\Users\alpsw\AppData\Roaming\Typora\typora-user-images\image-20210508172429519.png" alt="image-20210508172429519"></p>
+w_{penumbra}=(d_{receiver}-d_{Blocker})·w_{Light}/d_{Blocker}</script><p><img src="../images/image-20210508172429519.png" alt="image-20210508172429519"></p>
 <p>从上图可以看到其实就是个简单的相似三角形关系，图来自Games202原视频</p>
 <h2 id="PCSS算法全过程"><a href="#PCSS算法全过程" class="headerlink" title="PCSS算法全过程"></a>PCSS算法全过程</h2><p>对于面光源无法生成SM的问题：将面光源看作点光源（例如放在面光源中心的点光源）去生成SM</p>
 <p>对于一个shading point p：</p>
@@ -400,7 +400,7 @@ w_{penumbra}=(d_{receiver}-d_{Blocker})·w_{Light}/d_{Blocker}</script><p><img s
 V(x)=\sum_{y\in\Nu(x)}w(x,y)·\chi^+[D_{SM}-D{scene}(x)]</script><p>其中$\chi^+()$为符号函数，其中变量大于0函数值为1，反之为0,w为权值</p>
 <p>关于取得$d_{Blocker}$时所查询的范围大小，第一可以用一个常数大小（比如5x5）</p>
 <p>除此之外还有一个更好的方法，见图</p>
-<p><img src="C:\Users\alpsw\AppData\Roaming\Typora\typora-user-images\image-20210508174819794.png" alt="image-20210508174819794"></p>
+<p><img src="../images/image-20210508174819794.png" alt="image-20210508174819794"></p>
 <p>这样这个套娃问题就解决啦</p>
 <h2 id="PCSS的问题"><a href="#PCSS的问题" class="headerlink" title="PCSS的问题"></a>PCSS的问题</h2><p>开销非常，非常，非常，恐怖</p>
 <p>想象一下，对于一个点p，假如PCF的filter范围是5x5，第一步找$d_{Blocker}$的范围也是5x5，一来一去五十次采样，50倍开销，这么压榨电脑，这要是个ai，你就    等着智械危机吧。</p>
@@ -440,10 +440,10 @@ P(X>t) = \cfrac{\sigma^2}{\sigma^2+(t-\mu)^2}</script><p>尽管切比雪夫不�
 <p>总之现在我们也就把这个问题解决了，撒花</p>
 <h2 id="SAT-Summed-Area-Table"><a href="#SAT-Summed-Area-Table" class="headerlink" title="SAT(Summed Area Table)"></a>SAT(Summed Area Table)</h2><p>这里插播一个之间就提到的，比MIPMAP精确且可以适应长方形查询平均值的技术：SAT</p>
 <p>前面已经说到了SAT是一个基于前缀和的算法，这里放张图大家感受一下什么是前缀和</p>
-<p><img src="C:\Users\alpsw\AppData\Roaming\Typora\typora-user-images\image-20210508210011660.png" alt="image-20210508210011660"></p>
+<p><img src="../images/image-20210508210011660.png" alt="image-20210508210011660"></p>
 <p>可以看到SAT的第n项实际上就是把原输入前面的n项加起来，当我们要求m到n项之间的和的时候，只需要用SAT的第n项减去第m-1项就好了，这种预处理的方法快速便捷无误差。</p>
 <p>拓展到二维也是一样，我们只需要在预处理生成SAT的时候把1D时的加左方一项改成加上方一项和左方一项，求[a,b]到[x,y]之间的和的时候只需要做如下的操作即可，具体看图</p>
-<p><img src="C:\Users\alpsw\AppData\Roaming\Typora\typora-user-images\image-20210508210856542.png" alt="image-20210508210856542"></p>
+<p><img src="../images/image-20210508210856542.png" alt="image-20210508210856542"></p>
 <h2 id="VSSM结尾"><a href="#VSSM结尾" class="headerlink" title="VSSM结尾"></a>VSSM结尾</h2><p>虽然VSSM很牛逼，但是业界还就那个逐渐没人用</p>
 <p>主要是因为各种降噪手段都出来了，空间域和时间域双管齐下，导致稀疏采样的PCSS逐渐的好起来了，这么多近似的VSSM用的人就少了</p>
 <p>但是这个算法是真的牛逼啊，这就是我学概率论的意义吗（</p>
