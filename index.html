@@ -318,7 +318,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-05-08 15:16:24 / 修改时间：21:30:19" itemprop="dateCreated datePublished" datetime="2021-05-08T15:16:24+08:00">2021-05-08</time>
+              <time title="创建时间：2021-05-08 15:16:24 / 修改时间：21:48:26" itemprop="dateCreated datePublished" datetime="2021-05-08T15:16:24+08:00">2021-05-08</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -372,9 +372,13 @@
 <p>​    <del>听起来很美好但限制太多了又慢根本没人用</del></p>
 <p>​    此外，这个方法要进行两次深度查询，虽然渐近时间复杂度都是O(n)但是<strong>实时渲染不相信复杂度</strong></p>
 <h3 id="走样"><a href="#走样" class="headerlink" title="走样"></a>走样</h3><p>同样是因为shadow map的精度问题，投射的阴影有锯齿</p>
-<h1 id="实时渲染中的近似相等"><a href="#实时渲染中的近似相等" class="headerlink" title="实时渲染中的近似相等"></a>实时渲染中的近似相等</h1><p>$$<br>\int_{\Omega}^{}f(x)g(x)\text{d}x \approx \cfrac{\int_{\Omega}^{}f(x)\text{d}x}{\int_{\Omega}^{}\text{d}x}·\int_{\Omega}^{}g(x)\text{d}x<br>$$</p>
-<p>上式在<strong>积分域小，g(x)足够光滑</strong>时足够准确<del>别问我为什么我不知道我恨数学</del></p>
-<p>依照上式，渲染方程<br>$$<br>L_o(p,\omega_o)=\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}V(p,\omega_i)d\omega_i<br>$$<br>可被近似为<br>$$<br>L_o(p,\omega_o) \approx \cfrac{\int_{\Omega+}V(p,\omega_i)d\omega_i}{\int_{\Omega+}d\omega_i}\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}d\omega_i<br>$$<br>此式子将会在环境光遮蔽时被使用</p>
+<h1 id="实时渲染中的近似相等"><a href="#实时渲染中的近似相等" class="headerlink" title="实时渲染中的近似相等"></a>实时渲染中的近似相等</h1><script type="math/tex; mode=display">
+\int_{\Omega}^{}f(x)g(x)\text{d}x \approx \cfrac{\int_{\Omega}^{}f(x)\text{d}x}{\int_{\Omega}^{}\text{d}x}·\int_{\Omega}^{}g(x)\text{d}x</script><p>上式在<strong>积分域小，g(x)足够光滑</strong>时足够准确<del>别问我为什么我不知道我恨数学</del></p>
+<p>依照上式，渲染方程</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}V(p,\omega_i)d\omega_i</script><p>可被近似为</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o) \approx \cfrac{\int_{\Omega+}V(p,\omega_i)d\omega_i}{\int_{\Omega+}d\omega_i}\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}d\omega_i</script><p>此式子将会在环境光遮蔽时被使用</p>
 <h1 id="PCSS-Percentage-Closer-Soft-Shadows"><a href="#PCSS-Percentage-Closer-Soft-Shadows" class="headerlink" title="PCSS(Percentage Closer Soft Shadows)"></a>PCSS(Percentage Closer Soft Shadows)</h1><p>传统的shadow mapping方法只能得到硬阴影，但在现实世界中更加常见的是软阴影，PCSS就是一种获得软阴影的方法</p>
 <h2 id="PCF-Percentage-Closer-Filtering"><a href="#PCF-Percentage-Closer-Filtering" class="headerlink" title="PCF(Percentage Closer Filtering)"></a>PCF(Percentage Closer Filtering)</h2><p>最开始开发出来是为了做阴影的反走样（抗锯齿），但PCSS用这种方法做反走样</p>
 <h3 id="PCF的作用原理"><a href="#PCF的作用原理" class="headerlink" title="PCF的作用原理"></a>PCF的作用原理</h3><p>首先，<strong>PCF不是对SM求平均，模糊SM，也不是直接对生成完毕后的阴影结果做模糊</strong></p>
@@ -382,14 +386,18 @@
 <p>可以看见，当我把这个filter的范围取的比较大的时候，就可以用PCF近似出软阴影的效果了</p>
 <h3 id="PCSS中的PCF"><a href="#PCSS中的PCF" class="headerlink" title="PCSS中的PCF"></a>PCSS中的PCF</h3><p>那么，我们应该给一个多大的filter，filter的大小必须要是固定的吗？</p>
 <p>显然并不是的，对于不同的<strong>遮挡物到阴影</strong>的距离，要给不同大小的filter，这也很好理解，月食不一定能把太阳全部挡住，但你的手可以</p>
-<p>更准确的说法，filter size和相对的，平均的，投射的遮挡物深度有关(relative average projected blocker depth)<del>说人话</del><br>$$<br>w_{penumbra}=(d_{receiver}-d_{Blocker})·w_{Light}/d_{Blocker}<br>$$<br><img src="C:\Users\alpsw\AppData\Roaming\Typora\typora-user-images\image-20210508172429519.png" alt="image-20210508172429519"></p>
+<p>更准确的说法，filter size和相对的，平均的，投射的遮挡物深度有关(relative average projected blocker depth)<del>说人话</del></p>
+<script type="math/tex; mode=display">
+w_{penumbra}=(d_{receiver}-d_{Blocker})·w_{Light}/d_{Blocker}</script><p><img src="C:\Users\alpsw\AppData\Roaming\Typora\typora-user-images\image-20210508172429519.png" alt="image-20210508172429519"></p>
 <p>从上图可以看到其实就是个简单的相似三角形关系，图来自Games202原视频</p>
 <h2 id="PCSS算法全过程"><a href="#PCSS算法全过程" class="headerlink" title="PCSS算法全过程"></a>PCSS算法全过程</h2><p>对于面光源无法生成SM的问题：将面光源看作点光源（例如放在面光源中心的点光源）去生成SM</p>
 <p>对于一个shading point p：</p>
 <p>1.记录p点周围所有<strong>可以遮挡住p点</strong>的像素（Blocker）的平均深度$d_{Blocker}$</p>
 <p>2.根据$d_{Blocker}$求得$w_{penumbra}$</p>
 <p>3.PCF</p>
-<p> 在PCSS中，我们可以用如下式子表示PCF算法<br>$$<br>V(x)=\sum_{y\in\Nu(x)}w(x,y)·\chi^+[D_{SM}-D{scene}(x)]<br>$$<br>其中$\chi^+()$为符号函数，其中变量大于0函数值为1，反之为0,w为权值</p>
+<p> 在PCSS中，我们可以用如下式子表示PCF算法</p>
+<script type="math/tex; mode=display">
+V(x)=\sum_{y\in\Nu(x)}w(x,y)·\chi^+[D_{SM}-D{scene}(x)]</script><p>其中$\chi^+()$为符号函数，其中变量大于0函数值为1，反之为0,w为权值</p>
 <p>关于取得$d_{Blocker}$时所查询的范围大小，第一可以用一个常数大小（比如5x5）</p>
 <p>除此之外还有一个更好的方法，见图</p>
 <p><img src="C:\Users\alpsw\AppData\Roaming\Typora\typora-user-images\image-20210508174819794.png" alt="image-20210508174819794"></p>
@@ -408,16 +416,24 @@
 <p>这玩意不就是MIPMAP嘛</p>
 <p>除了MIPMAP，我们还有一种更精准的方法叫做SAT(Summed Area Tables)，实现原理是简单的前缀和，SAT的介绍写在后面了</p>
 <p>我们可以知道的就是我们很轻松的就可以知道它的平均值，现在平均值有了，那么方差呢？</p>
-<p>接下来请出我们的一个刻在DNA里的经典公式<del>概率论双杀</del><br>$$<br>Var(X)=E(X^2)-E^2(X)<br>$$<br>直接拿下</p>
+<p>接下来请出我们的一个刻在DNA里的经典公式<del>概率论双杀</del></p>
+<script type="math/tex; mode=display">
+Var(X)=E(X^2)-E^2(X)</script><p>直接拿下</p>
 <p>这样我们只需要在缓存SM的同时再缓存一张记录了深度平方的SM就搞定了</p>
 <p>现在我们已经可以估计出一个正态分布了，这时候其实我们想要知道的是这个正态分布曲线下面围成的面积，也就是那个熟悉的$P(X&gt; x)$</p>
 <p>学过概率论的你估计有反应过来了：这不是那个著名的不等式吗？</p>
-<p>没错，隆重请出切比雪夫（chebychev）不等式<br>$$<br>P(X&gt;t) \leq \cfrac{\sigma^2}{\sigma^2+(t-\mu)^2}<br>$$<br>到现在就可以摊牌了，正态分布只是方便理解，真正要用到的就是上面这个切比雪夫不等式</p>
-<p>虽然这里不是等于，是小于等于，但是实时渲染充满了近似，我们可以近似的认为有<br>$$<br>P(X&gt;t) = \cfrac{\sigma^2}{\sigma^2+(t-\mu)^2}<br>$$<br>尽管切比雪夫不等式其实有很多的限制都没有考虑，但是这很好用，也很快，误差也尚可接受，所以实时渲染里我们可以用这种方法</p>
+<p>没错，隆重请出切比雪夫（chebychev）不等式</p>
+<script type="math/tex; mode=display">
+P(X>t) \leq \cfrac{\sigma^2}{\sigma^2+(t-\mu)^2}</script><p>到现在就可以摊牌了，正态分布只是方便理解，真正要用到的就是上面这个切比雪夫不等式</p>
+<p>虽然这里不是等于，是小于等于，但是实时渲染充满了近似，我们可以近似的认为有</p>
+<script type="math/tex; mode=display">
+P(X>t) = \cfrac{\sigma^2}{\sigma^2+(t-\mu)^2}</script><p>尽管切比雪夫不等式其实有很多的限制都没有考虑，但是这很好用，也很快，误差也尚可接受，所以实时渲染里我们可以用这种方法</p>
 <h2 id="VSSM解决Blocker-Search"><a href="#VSSM解决Blocker-Search" class="headerlink" title="VSSM解决Blocker Search"></a>VSSM解决Blocker Search</h2><p>以上我们解决了第三步PCF的多次采样问题，那么第一步Blocker search呢？</p>
 <p>一次采样的点之中有且仅有两种情况：这个点可以算作Blocker，以及这个点不能算作Blocker</p>
 <p>我们记总采样个数$N$，Blocker的平均深度为$z_{occ}$，个数为$N_1$，非Blocker的深度为$z_{unocc}$，个数为$N_2$,平均深度为$z_{avg}$</p>
-<p>则很容易看出来对于任意情况总有<br>$$<br>\cfrac{N_1}{N}z_{occ}+\cfrac{N_2}{N}z_{unocc}=z_{avg}<br>$$<br>我们不难看出$\cfrac{N_2}{N}=P(x&gt;t)$，又可以愉快的切比雪夫了</p>
+<p>则很容易看出来对于任意情况总有</p>
+<script type="math/tex; mode=display">
+\cfrac{N_1}{N}z_{occ}+\cfrac{N_2}{N}z_{unocc}=z_{avg}</script><p>我们不难看出$\cfrac{N_2}{N}=P(x&gt;t)$，又可以愉快的切比雪夫了</p>
 <p>现在我们知道了$\cfrac{N_2}{N}$，$\cfrac{N_1}{N}=1-\cfrac{N_2}{N}$以及直接从MIPMAP或SAT获得的$z_{avg}$，想要解出$z_{occ}$，但我们还有一个变量不知道：$z_{unocc}$</p>
 <p>这里就又是大胆假设出场的时机了：我们直接假设$z_{unocc}=t$，没想到吧</p>
 <p>其实是因为绝大部分阴影接收者是个平面，所以这么假设问题不大<del>（你妹啊斜的平面咋办啊？）</del></p>
@@ -863,6 +879,61 @@
 
 
   
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 
