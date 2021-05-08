@@ -6,7 +6,7 @@
   <link href="https://qjc0822.github.io/atom.xml" rel="self"/>
   
   <link href="https://qjc0822.github.io/"/>
-  <updated>2021-05-07T14:26:03.476Z</updated>
+  <updated>2021-05-08T13:30:19.204Z</updated>
   <id>https://qjc0822.github.io/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Games202笔记——Real-time Shadows</title>
+    <link href="https://qjc0822.github.io/2021/05/08/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Shadows/"/>
+    <id>https://qjc0822.github.io/2021/05/08/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Shadows/</id>
+    <published>2021-05-08T07:16:24.000Z</published>
+    <updated>2021-05-08T13:30:19.204Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;这节课主要是关于光栅化软阴影的算法&lt;del&gt;光追扎布多德勒&lt;/del&gt;&lt;/p&gt;
+&lt;h1 id=&quot;关于shadow-mapping的回顾&quot;&gt;&lt;a href=&quot;#关于shadow-mapping的回顾&quot; class=&quot;headerlink&quot; title=&quot;关于shadow</summary>
+        
+      
+    
+    
+    
+    <category term="图形学" scheme="https://qjc0822.github.io/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/"/>
+    
+    
+    <category term="图形学" scheme="https://qjc0822.github.io/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/"/>
+    
+    <category term="笔记" scheme="https://qjc0822.github.io/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+  </entry>
   
   <entry>
     <title>命运石之门0主观评测和游玩体验</title>
