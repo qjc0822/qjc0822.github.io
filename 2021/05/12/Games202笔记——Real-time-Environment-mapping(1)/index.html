@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-corner-indicator.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qjc0822.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="关于shadow的补充Distance Field Soft ShadowDistance Functions&#x2F;(Signed)Distance Field(SDF)定义了空间中一点到物体表面的最小距离 可能被规定为带正负号的，即到一个表面的有向(signed)距离 不同物体的SDF混合后可以产生平滑的过度，是SDF一个非常好的性质 下图是一个可视化的SDF  SDF的应用1.Sphere tra">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Games202笔记——Real-time-Environment-mapping(1)">
+<meta property="og:url" content="https://qjc0822.github.io/2021/05/12/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping(1)/index.html">
+<meta property="og:site_name" content="FocoL用来显摆的架子">
+<meta property="og:description" content="关于shadow的补充Distance Field Soft ShadowDistance Functions&#x2F;(Signed)Distance Field(SDF)定义了空间中一点到物体表面的最小距离 可能被规定为带正负号的，即到一个表面的有向(signed)距离 不同物体的SDF混合后可以产生平滑的过度，是SDF一个非常好的性质 下图是一个可视化的SDF  SDF的应用1.Sphere tra">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qjc0822.github.io/2021/05/12/images/image-20210512173710432.png">
+<meta property="og:image" content="https://qjc0822.github.io/2021/05/12/images/image-20210512171559692.png">
+<meta property="og:image" content="https://qjc0822.github.io/2021/05/12/images/image-20210512172136691.png">
+<meta property="og:image" content="https://qjc0822.github.io/2021/05/12/images/image-20210512180127816.png">
+<meta property="og:image" content="https://qjc0822.github.io/2021/05/12/images/image-20210512191536843.png">
+<meta property="article:published_time" content="2021-05-12T08:47:26.000Z">
+<meta property="article:modified_time" content="2021-05-12T11:19:45.087Z">
+<meta property="article:author" content="FocoL">
+<meta property="article:tag" content="图形学">
+<meta property="article:tag" content="笔记">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qjc0822.github.io/2021/05/12/images/image-20210512173710432.png">
+
+<link rel="canonical" href="https://qjc0822.github.io/2021/05/12/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping(1)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Games202笔记——Real-time-Environment-mapping(1) | FocoL用来显摆的架子</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="FocoL用来显摆的架子" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">FocoL用来显摆的架子</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">el psy congroo</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qjc0822.github.io/2021/05/12/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping(1)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="FocoL">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="FocoL用来显摆的架子">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Games202笔记——Real-time-Environment-mapping(1)
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-05-12 16:47:26 / 修改时间：19:19:45" itemprop="dateCreated datePublished" datetime="2021-05-12T16:47:26+08:00">2021-05-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">图形学</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/05/12/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping(1)/" class="post-meta-item leancloud_visitors" data-flag-title="Games202笔记——Real-time-Environment-mapping(1)" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/05/12/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping(1)/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/05/12/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping(1)/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="关于shadow的补充"><a href="#关于shadow的补充" class="headerlink" title="关于shadow的补充"></a>关于shadow的补充</h1><h2 id="Distance-Field-Soft-Shadow"><a href="#Distance-Field-Soft-Shadow" class="headerlink" title="Distance Field Soft Shadow"></a>Distance Field Soft Shadow</h2><h3 id="Distance-Functions-Signed-Distance-Field-SDF"><a href="#Distance-Functions-Signed-Distance-Field-SDF" class="headerlink" title="Distance Functions/(Signed)Distance Field(SDF)"></a>Distance Functions/(Signed)Distance Field(SDF)</h3><p>定义了空间中一点到物体表面的最小距离</p>
+<p>可能被规定为带正负号的，即到一个表面的<strong>有向(signed)距离</strong></p>
+<p>不同物体的SDF混合后可以产生平滑的过度，是SDF一个非常好的性质</p>
+<p>下图是一个可视化的SDF</p>
+<p><img src="../images/image-20210512173710432.png" alt="image-20210512173710432"></p>
+<h4 id="SDF的应用"><a href="#SDF的应用" class="headerlink" title="SDF的应用"></a>SDF的应用</h4><p>1.Sphere tracing</p>
+<p>​    对于在SDF上进行的ray tracing，一个很简单的实现方式是sphere tracing，实现方法如下</p>
+<p>​    对于ray上一点P</p>
+<p>​        1.求得SDF(P)</p>
+<p>​        2.沿着射线方向移动SDF(P)的距离到达P’</p>
+<p>​        3.对于P’,回到第一步操作直到接触到物体表面（SDF(P)=0）</p>
+<p><img src="../images/image-20210512171559692.png" alt="image-20210512171559692"></p>
+<p>2.计算软阴影</p>
+<p>通过SDF我们可以获得一个不会被遮挡的“安全角度”，原理如图所示</p>
+<p><img src="../images/image-20210512172136691.png" alt="image-20210512172136691"></p>
+<p>如果安全角度比较小，我们可以认为该点对于光源的可视度低</p>
+<p>计算安全角度的方法：对于每次sphere tracing的结果，记录SDF(P)的最小值和最小值对应的点P‘，则安全角度$\theta$对应的公式为</p>
+<script type="math/tex; mode=display">
+\theta=\arcsin(\cfrac{SDF(P')}{|P'-O|})</script><p>我们自然可以这样计算，但反三角函数计算量非常大，实时渲染中应尽量避免这种运算，所以我们可以进行如下简化</p>
+<script type="math/tex; mode=display">
+Visiblity=min\{k·\cfrac{SDF(P')}{|P'-O|},1.0\}</script><p>这样可以一步得出可视度，注意到可视度并不会大于1.0，也就是说$k·\cfrac{SDF(P’)}{|P’-O|}$大于1的部分并没有任何作用，不难看出k的变大会使得大于1的部分变多，从而使软阴影渐变的范围变小，提升阴影的硬度。</p>
+<h3 id="距离场软阴影的特点"><a href="#距离场软阴影的特点" class="headerlink" title="距离场软阴影的特点"></a>距离场软阴影的特点</h3><h4 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h4><p>快速</p>
+<p>质量不低</p>
+<h4 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h4><p>需要预计算</p>
+<p>对存储有重度需求（三维的SDF）</p>
+<p>SDF存在各种Artifact（瑕疵？还是怎么翻译？）</p>
+<h1 id="环境光的着色"><a href="#环境光的着色" class="headerlink" title="环境光的着色"></a>环境光的着色</h1><h2 id="简单回顾环境光照"><a href="#简单回顾环境光照" class="headerlink" title="简单回顾环境光照"></a>简单回顾环境光照</h2><p>用一张图记录环境中的光照信息</p>
+<p>默认所有的光都是来自无限远的</p>
+<h2 id="IBL-Image-Based-Lighting"><a href="#IBL-Image-Based-Lighting" class="headerlink" title="IBL(Image-Based Lighting)"></a>IBL(Image-Based Lighting)</h2><p>对于处于环境光照下的物体，我们如何给这个物体上的每一个点着色呢？</p>
+<p>一说起着色，我们自然就会想到渲染方程</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}V(p,\omega_i)d\omega_i</script><p>环境光照下并不考虑visibility项，因此正确的渲染方程为</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}d\omega_i</script><p>计算机该如何解上述的方程？Games101讲过的蒙特卡洛积分就是对上述方程积分的一个无偏估计。</p>
+<p>然而蒙特卡洛积分需要大量的采样，如果对于每一个点都需要应用一次蒙特卡洛积分，这个方法将慢到爆炸，现在基于降噪，采样复用等等技术，这个方法也变得逐渐可用，但本着能不采样就不采样的原则，我们引入如下方法</p>
+<h3 id="The-Split-Sum"><a href="#The-Split-Sum" class="headerlink" title="The Split Sum"></a>The Split Sum</h3><p>我们观察到如果这个物体的BRDF是glossy的(类似镜面反射)，那么对于一个观察的视角，只需要计算一个很小的积分域，如果BRDF是diffuse的（漫反射），那么它的BRDF就会比较光滑，如图所示，下图中左边为glossy的BRDF，右边为diffuse的BRDF</p>
+<p><img src="../images/image-20210512180127816.png" alt="image-20210512180127816"></p>
+<p>还记得上一节课讲到的实时渲染的近似相等吗？</p>
+<script type="math/tex; mode=display">
+\int_{\Omega}^{}f(x)g(x)\text{d}x \approx \cfrac{\int_{\Omega}^{}f(x)\text{d}x}{\int_{\Omega}^{}\text{d}x}·\int_{\Omega}^{}g(x)\text{d}x</script><p>上式在<strong>积分域小，g(x)足够光滑</strong>时足够准确</p>
+<p>可以发现我们的BRDF完美符合了如上条件，所以渲染方程可以被我们拆解为</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)\approx\cfrac{\int_{\Omega_{fr}}L_i(p,\omega_i)d\omega_i}{\int_{\Omega_{fr}}d\omega_i}·\int_{\Omega_+}{f_r(p,\omega_i,\omega_o)\cos(\theta_i)d\omega_i}</script><p><del>看着就头疼</del></p>
+<p>莫慌，先看环境光</p>
+<h4 id="对于环境光项的处理"><a href="#对于环境光项的处理" class="headerlink" title="对于环境光项的处理"></a>对于环境光项的处理</h4><p>注意乘号前面的项，在我们拆出来的两部分中，这项包含了入射光项，我们把它在BRDF所覆盖的范围内积分并取平均，实际上表示我们<strong>模糊</strong>了作为入射光的环境光贴图，所以实际上我们完全可以提前对环境光贴图进行滤波（可以理解为模糊），更进一步的，我们可以先给环境光贴图做不同强度的模糊，在需要的时候直接查询，这与MIPMAP非常相似</p>
+<p>现在前面一半被我们解决了，那后面一半的积分呢？</p>
+<p>按照上述的想法，我们好像也可以对这个BRDF做预计算，但是这种预计算实在太浩大了（菲涅尔项，粗糙度等等一堆东西），还是很慢</p>
+<p>但是预计算还是要预计算的，维数太多就只能降维估计近似这样子</p>
+<p><del>接下来基本没太懂照搬原话警告</del></p>
+<h4 id="对于BRDF的处理"><a href="#对于BRDF的处理" class="headerlink" title="对于BRDF的处理"></a>对于BRDF的处理</h4><p>首先我们回顾一下Microfacet BRDF（微表面BRDF）</p>
+<p>对于一个点p，入射方向i，出射方向o，我们可以把BRDF写成如下形式</p>
+<script type="math/tex; mode=display">
+f(i,o)=\cfrac{F(i,h)G(i,o,h)D(h)}{4(n,i)(n,o)}</script><p>其中F为菲涅尔项，决定了从不同角度观察材质有多少能量被反射，G为阴影遮蔽项，D为微表面法线分布，h为半程向量（（入射向量+出射向量）/2），其中比较重要的是F和D，我们重点考虑</p>
+<p>先看菲涅尔项F，这是一个十分复杂的函数，但是有一个近似方法可以很好的近似菲涅尔项，即Schlick’s approximation，根据这种近似，我们有</p>
+<script type="math/tex; mode=display">
+R(\theta)=R_0+(1-R_0)(1-\cos{\theta})^5</script><p>$R_0$为物体的基础反射率</p>
+<p>关于物体的法线，我们以贝克曼分布（Beckmann distribution）为例，公式如下</p>
+<script type="math/tex; mode=display">
+D(h)=\cfrac{e^{-\cfrac{\tan^{2}{\theta_h}}{\alpha^2}}}{\pi\alpha^2\cos^{4}{\theta_h}}</script><p><del>说实话没太看懂但是知道有这么个分布就得了</del></p>
+<p><del>ylq原话：非常简单的一个一维的分布</del></p>
+<p>其中$\alpha$代表了物体表面的粗糙度，$\theta_h$表示半程向量h和法线的夹角，我们可以用各种代换把她变成跟入射方向有关的角度，也就是说，菲涅尔项中的$\theta$和法线分布中的$\theta_h$并不是两个互不相关的未知数，而是可以用一个未知数同时表示的两个项。</p>
+<p>这样BRDF就被我们降维到了三个维度：$R_0$，$\alpha$和$\theta$</p>
+<p>三维还是高了一点，能不能再拆一个变量出去呢？</p>
+<p>人们发现<del>别问我怎么发现的</del>当我们用Schlick’s approximation表示菲涅尔项后，BRDF还可以被近似成如下的形式：</p>
+<script type="math/tex; mode=display">
+\int_{\Omega_+}{f_r(p,\omega_i,\omega_o)\cos(\theta_i)d\omega_i}\approx R_0\int_{\Omega_+}{\cfrac{f_r}{F}(1-(1-\cos{\theta_i})^5)\cos(\theta_i)d\omega_i}+\\
+\int_{\Omega_+}{\cfrac{f_r}{F}(1-\cos{\theta_i})^5\cos(\theta_i)d\omega_i}</script><p><del>生怕我学会的式子</del></p>
+<p>不过看不懂这个式子其实问题不大，本质是公式的整理，关键是现在我们把$R_0$从积分中拆出去了，积分里只剩下两个变量了！</p>
+<p>这样我们就可以放心大胆的预计算了，我们可以根据每一个$\alpha$和$\theta$算一遍结果，把结果打印在一张表上，对于图形学来说就是一张2D的texture，前后两部分积分各打一张tex，效果如下</p>
+<p><img src="../images/image-20210512191536843.png" alt="image-20210512191536843"></p>
+<p>这样我们就解决了<del>（就？）</del>环境光的渲染问题</p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" rel="tag"># 图形学</a>
+              <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/08/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Shadows/" rel="prev" title="Games202笔记——Real-time Shadows">
+      <i class="fa fa-chevron-left"></i> Games202笔记——Real-time Shadows
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Eshadow%E7%9A%84%E8%A1%A5%E5%85%85"><span class="nav-number">1.</span> <span class="nav-text">关于shadow的补充</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Distance-Field-Soft-Shadow"><span class="nav-number">1.1.</span> <span class="nav-text">Distance Field Soft Shadow</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Distance-Functions-Signed-Distance-Field-SDF"><span class="nav-number">1.1.1.</span> <span class="nav-text">Distance Functions&#x2F;(Signed)Distance Field(SDF)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SDF%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">SDF的应用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%9D%E7%A6%BB%E5%9C%BA%E8%BD%AF%E9%98%B4%E5%BD%B1%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-number">1.1.2.</span> <span class="nav-text">距离场软阴影的特点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E7%82%B9"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%BA%E7%82%B9"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">缺点</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%85%89%E7%9A%84%E7%9D%80%E8%89%B2"><span class="nav-number">2.</span> <span class="nav-text">环境光的着色</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%9B%9E%E9%A1%BE%E7%8E%AF%E5%A2%83%E5%85%89%E7%85%A7"><span class="nav-number">2.1.</span> <span class="nav-text">简单回顾环境光照</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IBL-Image-Based-Lighting"><span class="nav-number">2.2.</span> <span class="nav-text">IBL(Image-Based Lighting)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Split-Sum"><span class="nav-number">2.2.1.</span> <span class="nav-text">The Split Sum</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E4%BA%8E%E7%8E%AF%E5%A2%83%E5%85%89%E9%A1%B9%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">对于环境光项的处理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E4%BA%8EBRDF%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-number">2.2.1.2.</span> <span class="nav-text">对于BRDF的处理</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="FocoL"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">FocoL</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+      <div id="music163player">
+        <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=110 src="//music.163.com/outchain/player?type=0&id=6747021239&auto=0&height=90">
+        </iframe>
+        </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+      
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+  
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">FocoL</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'aTqeloW3RYAqxCw6UUoFwD3P-MdYXbMMI',
+      appKey     : 'zdpWElL5HpkmKHRe0unSqrC0',
+      placeholder: "欢迎吐槽，下手轻点wwwww",
+      avatar     : '',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":200,"height":400},"mobile":{"show":true},"rect":"opacity:0.7","log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>
+<!--崩溃欺骗-->
+<script type="text/javascript" src="/js/crash_cheat.js"></script>

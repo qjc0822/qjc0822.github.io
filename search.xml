@@ -17,6 +17,89 @@
       </tags>
   </entry>
   <entry>
+    <title>Games202笔记——Real-time-Environment-mapping(1)</title>
+    <url>/2021/05/12/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping(1)/</url>
+    <content><![CDATA[<h1 id="关于shadow的补充"><a href="#关于shadow的补充" class="headerlink" title="关于shadow的补充"></a>关于shadow的补充</h1><h2 id="Distance-Field-Soft-Shadow"><a href="#Distance-Field-Soft-Shadow" class="headerlink" title="Distance Field Soft Shadow"></a>Distance Field Soft Shadow</h2><h3 id="Distance-Functions-Signed-Distance-Field-SDF"><a href="#Distance-Functions-Signed-Distance-Field-SDF" class="headerlink" title="Distance Functions/(Signed)Distance Field(SDF)"></a>Distance Functions/(Signed)Distance Field(SDF)</h3><p>定义了空间中一点到物体表面的最小距离</p>
+<p>可能被规定为带正负号的，即到一个表面的<strong>有向(signed)距离</strong></p>
+<p>不同物体的SDF混合后可以产生平滑的过度，是SDF一个非常好的性质</p>
+<p>下图是一个可视化的SDF</p>
+<p><img src="../images/image-20210512173710432.png" alt="image-20210512173710432"></p>
+<h4 id="SDF的应用"><a href="#SDF的应用" class="headerlink" title="SDF的应用"></a>SDF的应用</h4><p>1.Sphere tracing</p>
+<p>​    对于在SDF上进行的ray tracing，一个很简单的实现方式是sphere tracing，实现方法如下</p>
+<p>​    对于ray上一点P</p>
+<p>​        1.求得SDF(P)</p>
+<p>​        2.沿着射线方向移动SDF(P)的距离到达P’</p>
+<p>​        3.对于P’,回到第一步操作直到接触到物体表面（SDF(P)=0）</p>
+<p><img src="../images/image-20210512171559692.png" alt="image-20210512171559692"></p>
+<p>2.计算软阴影</p>
+<p>通过SDF我们可以获得一个不会被遮挡的“安全角度”，原理如图所示</p>
+<p><img src="../images/image-20210512172136691.png" alt="image-20210512172136691"></p>
+<p>如果安全角度比较小，我们可以认为该点对于光源的可视度低</p>
+<p>计算安全角度的方法：对于每次sphere tracing的结果，记录SDF(P)的最小值和最小值对应的点P‘，则安全角度$\theta$对应的公式为</p>
+<script type="math/tex; mode=display">
+\theta=\arcsin(\cfrac{SDF(P')}{|P'-O|})</script><p>我们自然可以这样计算，但反三角函数计算量非常大，实时渲染中应尽量避免这种运算，所以我们可以进行如下简化</p>
+<script type="math/tex; mode=display">
+Visiblity=min\{k·\cfrac{SDF(P')}{|P'-O|},1.0\}</script><p>这样可以一步得出可视度，注意到可视度并不会大于1.0，也就是说$k·\cfrac{SDF(P’)}{|P’-O|}$大于1的部分并没有任何作用，不难看出k的变大会使得大于1的部分变多，从而使软阴影渐变的范围变小，提升阴影的硬度。</p>
+<h3 id="距离场软阴影的特点"><a href="#距离场软阴影的特点" class="headerlink" title="距离场软阴影的特点"></a>距离场软阴影的特点</h3><h4 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h4><p>快速</p>
+<p>质量不低</p>
+<h4 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h4><p>需要预计算</p>
+<p>对存储有重度需求（三维的SDF）</p>
+<p>SDF存在各种Artifact（瑕疵？还是怎么翻译？）</p>
+<h1 id="环境光的着色"><a href="#环境光的着色" class="headerlink" title="环境光的着色"></a>环境光的着色</h1><h2 id="简单回顾环境光照"><a href="#简单回顾环境光照" class="headerlink" title="简单回顾环境光照"></a>简单回顾环境光照</h2><p>用一张图记录环境中的光照信息</p>
+<p>默认所有的光都是来自无限远的</p>
+<h2 id="IBL-Image-Based-Lighting"><a href="#IBL-Image-Based-Lighting" class="headerlink" title="IBL(Image-Based Lighting)"></a>IBL(Image-Based Lighting)</h2><p>对于处于环境光照下的物体，我们如何给这个物体上的每一个点着色呢？</p>
+<p>一说起着色，我们自然就会想到渲染方程</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}V(p,\omega_i)d\omega_i</script><p>环境光照下并不考虑visibility项，因此正确的渲染方程为</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}d\omega_i</script><p>计算机该如何解上述的方程？Games101讲过的蒙特卡洛积分就是对上述方程积分的一个无偏估计。</p>
+<p>然而蒙特卡洛积分需要大量的采样，如果对于每一个点都需要应用一次蒙特卡洛积分，这个方法将慢到爆炸，现在基于降噪，采样复用等等技术，这个方法也变得逐渐可用，但本着能不采样就不采样的原则，我们引入如下方法</p>
+<h3 id="The-Split-Sum"><a href="#The-Split-Sum" class="headerlink" title="The Split Sum"></a>The Split Sum</h3><p>我们观察到如果这个物体的BRDF是glossy的(类似镜面反射)，那么对于一个观察的视角，只需要计算一个很小的积分域，如果BRDF是diffuse的（漫反射），那么它的BRDF就会比较光滑，如图所示，下图中左边为glossy的BRDF，右边为diffuse的BRDF</p>
+<p><img src="../images/image-20210512180127816.png" alt="image-20210512180127816"></p>
+<p>还记得上一节课讲到的实时渲染的近似相等吗？</p>
+<script type="math/tex; mode=display">
+\int_{\Omega}^{}f(x)g(x)\text{d}x \approx \cfrac{\int_{\Omega}^{}f(x)\text{d}x}{\int_{\Omega}^{}\text{d}x}·\int_{\Omega}^{}g(x)\text{d}x</script><p>上式在<strong>积分域小，g(x)足够光滑</strong>时足够准确</p>
+<p>可以发现我们的BRDF完美符合了如上条件，所以渲染方程可以被我们拆解为</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)\approx\cfrac{\int_{\Omega_{fr}}L_i(p,\omega_i)d\omega_i}{\int_{\Omega_{fr}}d\omega_i}·\int_{\Omega_+}{f_r(p,\omega_i,\omega_o)\cos(\theta_i)d\omega_i}</script><p><del>看着就头疼</del></p>
+<p>莫慌，先看环境光</p>
+<h4 id="对于环境光项的处理"><a href="#对于环境光项的处理" class="headerlink" title="对于环境光项的处理"></a>对于环境光项的处理</h4><p>注意乘号前面的项，在我们拆出来的两部分中，这项包含了入射光项，我们把它在BRDF所覆盖的范围内积分并取平均，实际上表示我们<strong>模糊</strong>了作为入射光的环境光贴图，所以实际上我们完全可以提前对环境光贴图进行滤波（可以理解为模糊），更进一步的，我们可以先给环境光贴图做不同强度的模糊，在需要的时候直接查询，这与MIPMAP非常相似</p>
+<p>现在前面一半被我们解决了，那后面一半的积分呢？</p>
+<p>按照上述的想法，我们好像也可以对这个BRDF做预计算，但是这种预计算实在太浩大了（菲涅尔项，粗糙度等等一堆东西），还是很慢</p>
+<p>但是预计算还是要预计算的，维数太多就只能降维估计近似这样子</p>
+<p><del>接下来基本没太懂照搬原话警告</del></p>
+<h4 id="对于BRDF的处理"><a href="#对于BRDF的处理" class="headerlink" title="对于BRDF的处理"></a>对于BRDF的处理</h4><p>首先我们回顾一下Microfacet BRDF（微表面BRDF）</p>
+<p>对于一个点p，入射方向i，出射方向o，我们可以把BRDF写成如下形式</p>
+<script type="math/tex; mode=display">
+f(i,o)=\cfrac{F(i,h)G(i,o,h)D(h)}{4(n,i)(n,o)}</script><p>其中F为菲涅尔项，决定了从不同角度观察材质有多少能量被反射，G为阴影遮蔽项，D为微表面法线分布，h为半程向量（（入射向量+出射向量）/2），其中比较重要的是F和D，我们重点考虑</p>
+<p>先看菲涅尔项F，这是一个十分复杂的函数，但是有一个近似方法可以很好的近似菲涅尔项，即Schlick’s approximation，根据这种近似，我们有</p>
+<script type="math/tex; mode=display">
+R(\theta)=R_0+(1-R_0)(1-\cos{\theta})^5</script><p>$R_0$为物体的基础反射率</p>
+<p>关于物体的法线，我们以贝克曼分布（Beckmann distribution）为例，公式如下</p>
+<script type="math/tex; mode=display">
+D(h)=\cfrac{e^{-\cfrac{\tan^{2}{\theta_h}}{\alpha^2}}}{\pi\alpha^2\cos^{4}{\theta_h}}</script><p><del>说实话没太看懂但是知道有这么个分布就得了</del></p>
+<p><del>ylq原话：非常简单的一个一维的分布</del></p>
+<p>其中$\alpha$代表了物体表面的粗糙度，$\theta_h$表示半程向量h和法线的夹角，我们可以用各种代换把她变成跟入射方向有关的角度，也就是说，菲涅尔项中的$\theta$和法线分布中的$\theta_h$并不是两个互不相关的未知数，而是可以用一个未知数同时表示的两个项。</p>
+<p>这样BRDF就被我们降维到了三个维度：$R_0$，$\alpha$和$\theta$</p>
+<p>三维还是高了一点，能不能再拆一个变量出去呢？</p>
+<p>人们发现<del>别问我怎么发现的</del>当我们用Schlick’s approximation表示菲涅尔项后，BRDF还可以被近似成如下的形式：</p>
+<script type="math/tex; mode=display">
+\int_{\Omega_+}{f_r(p,\omega_i,\omega_o)\cos(\theta_i)d\omega_i}\approx R_0\int_{\Omega_+}{\cfrac{f_r}{F}(1-(1-\cos{\theta_i})^5)\cos(\theta_i)d\omega_i}+\\
+\int_{\Omega_+}{\cfrac{f_r}{F}(1-\cos{\theta_i})^5\cos(\theta_i)d\omega_i}</script><p><del>生怕我学会的式子</del></p>
+<p>不过看不懂这个式子其实问题不大，本质是公式的整理，关键是现在我们把$R_0$从积分中拆出去了，积分里只剩下两个变量了！</p>
+<p>这样我们就可以放心大胆的预计算了，我们可以根据每一个$\alpha$和$\theta$算一遍结果，把结果打印在一张表上，对于图形学来说就是一张2D的texture，前后两部分积分各打一张tex，效果如下</p>
+<p><img src="../images/image-20210512191536843.png" alt="image-20210512191536843"></p>
+<p>这样我们就解决了<del>（就？）</del>环境光的渲染问题</p>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>图形学</tag>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Games202笔记——Real-time Shadows</title>
     <url>/2021/05/08/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Shadows/</url>
     <content><![CDATA[<p>这节课主要是关于光栅化软阴影的算法<del>光追扎布多德勒</del></p>
