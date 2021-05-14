@@ -6,7 +6,7 @@
   <link href="https://qjc0822.github.io/atom.xml" rel="self"/>
   
   <link href="https://qjc0822.github.io/"/>
-  <updated>2021-05-12T11:19:45.087Z</updated>
+  <updated>2021-05-14T09:35:07.301Z</updated>
   <id>https://qjc0822.github.io/</id>
   
   <author>
@@ -15,6 +15,33 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Games202笔记——Real-time-Environment-mapping(2)</title>
+    <link href="https://qjc0822.github.io/2021/05/14/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping-2/"/>
+    <id>https://qjc0822.github.io/2021/05/14/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping-2/</id>
+    <published>2021-05-14T06:51:15.000Z</published>
+    <updated>2021-05-14T09:35:07.301Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;环境光照的阴影计算&quot;&gt;&lt;a href=&quot;#环境光照的阴影计算&quot; class=&quot;headerlink&quot; title=&quot;环境光照的阴影计算&quot;&gt;&lt;/a&gt;环境光照的阴影计算&lt;/h1&gt;&lt;p&gt;&lt;del&gt;首先，最High</summary>
+        
+      
+    
+    
+    
+    <category term="图形学" scheme="https://qjc0822.github.io/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/"/>
+    
+    
+    <category term="图形学" scheme="https://qjc0822.github.io/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/"/>
+    
+    <category term="笔记" scheme="https://qjc0822.github.io/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+  </entry>
   
   <entry>
     <title>Games202笔记——Real-time-Environment-mapping(1)</title>
@@ -48,7 +75,7 @@
     <link href="https://qjc0822.github.io/2021/05/08/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Shadows/"/>
     <id>https://qjc0822.github.io/2021/05/08/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Shadows/</id>
     <published>2021-05-08T07:16:24.000Z</published>
-    <updated>2021-05-08T14:55:51.772Z</updated>
+    <updated>2021-05-13T05:31:48.712Z</updated>
     
     
       
