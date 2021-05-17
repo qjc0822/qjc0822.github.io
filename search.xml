@@ -17,6 +17,151 @@
       </tags>
   </entry>
   <entry>
+    <title>Games202笔记——Real-time-Global-Illumination(2)</title>
+    <url>/2021/05/16/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Global-Illumination-2/</url>
+    <content><![CDATA[<h1 id="屏幕空间中的全局光照"><a href="#屏幕空间中的全局光照" class="headerlink" title="屏幕空间中的全局光照"></a>屏幕空间中的全局光照</h1><h2 id="Screen-Space-Ambient-Occlusion-SSAO"><a href="#Screen-Space-Ambient-Occlusion-SSAO" class="headerlink" title="Screen Space Ambient Occlusion(SSAO)"></a>Screen Space Ambient Occlusion(SSAO)</h2><p>大名鼎鼎的SSAO，游戏设置的常客，crytek出品，画质有保障（误）</p>
+<p>屏幕空间指所有的信息均来自屏幕</p>
+<p>SSAO有以下假设：</p>
+<p>1.我们不知道间接光照是什么，但假设间接光照是一个常数。</p>
+<p>熟悉吗？这实际上就是blin-phong模型的假设。</p>
+<p>2.不是所有方向都能接收到全局光照</p>
+<p>3.认为所有物体都diffuse</p>
+<p>还记得我们第一节课说的近似相等吗？</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o) \approx \cfrac{\int_{\Omega+}V(p,\omega_i)\cos{\theta_i}d\omega_i}{\int_{\Omega+}\cos{\theta_i}d\omega_i}\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}d\omega_i</script><p>那时候我们就说这个东西AO会用，现在是时候伏笔回收了。</p>
+<p>说起来前面这项是不是错了啊？为什么上下都多了个$\cos{\theta_i}$?</p>
+<p>那是因为$\cos{\theta_i}d\omega_i$本身是一个有明确定义的微元，如下</p>
+<p><img src="../images/image-20210516174819240.png" alt="image-20210516174819240"></p>
+<p>所以这么拆也是对的</p>
+<p>来看左边，分母实际上是定值$\pi$（算不出来的自行把$d\omega_i$拆成$d\theta d\phi$在正半球上二重积分），我们可以把这个式子记作Ambient项$k_A$，则有</p>
+<script type="math/tex; mode=display">
+k_A=\cfrac{\int_{\Omega+}V(p,\omega_i)\cos{\theta_i}d\omega_i}{\pi}</script><p>再看左项，对于全局光照来说$L_i$是一个常数，对于diffuse的BRDF也是个常数，所以这一项<del>简直是白给</del>，化简后可得$L_i^{indir}(p)·\rho$</p>
+<p>全局光照你随便定一个颜色就好，BRDF的albedo你也随便定一个颜色就好，所以右边突出一个随便定</p>
+<p>重要的是$k_A$</p>
+<p>在屏幕空间我们怎么求得visibility？</p>
+<p>第一个假设：我们在着色点周围随机撒一些点，判断这些点哪些在物体里面，哪些在物体外面</p>
+<p>第二个假设：只要一个点的深度大于深度图记录的最小深度，我们就认为它在物体里面</p>
+<p>如图所示</p>
+<p><img src="../images/image-20210516175925249.png" alt="image-20210516175925249"></p>
+<p>你可能觉得这难道不应该在半球上考虑吗？与法线方向相反的半球有什么用？</p>
+<p>问得好，但是当时我们还不能在屏幕空间上获得物体的法线信息，所以这里我们再次认为：只有被遮挡的点来到了一半以上，才开始考虑AO的问题</p>
+<p>我们就可以用这种方法近似visibility项</p>
+<p>有采样就有噪声，有噪声就有降噪，懂得都懂</p>
+<p>现在我们可以获得法线信息了，自然会指采样半球，这种改进方法叫做HBAO(Horizon based ambient occlusion),且这种方法只考虑一定范围内的遮挡关系，不会有SSAO里面一些奇奇怪怪的遮挡</p>
+<h2 id="Screen-Space-Directional-Occlusion-SSDO"><a href="#Screen-Space-Directional-Occlusion-SSDO" class="headerlink" title="Screen Space Directional Occlusion(SSDO)"></a>Screen Space Directional Occlusion(SSDO)</h2><p>SSDO是对于SSAO的提高，比起SSAO仅考虑环境光是常量，SSDO可以结合RSM考虑环境光</p>
+<p>SSDO的实现和path tracing非常类似</p>
+<p>1.对于着色点p，发射一根随机射线</p>
+<p>2.如果射线没有打到障碍物，进行直接光照，反之进行间接光照</p>
+<p>相比SSAO，SSDO做了完全相反的假设，SSAO认为物体被遮挡时无法接受到环境光照，而SSDO认为物体被遮挡是才接受环境光照，也就是说，SSAO假设环境光来自非常远的地方，SSDO假设环境光来自非常近的地方</p>
+<p>但凡是渲染我们肯定要解渲染方程</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}V(p,\omega_i)d\omega_i</script><p>把方程拆成可见和不可见两部分，则</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+,V=1}L_i^{dir}(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}d\omega_i</script><script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+,V=0}L_i^{indir}(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}d\omega_i</script><p>我们关心第二部分</p>
+<p>你用RSM也好，其它方法也好，一个点对着色点p的环境光贡献一定是可计算的，核心是怎么做遮挡的查询。</p>
+<p>我们仍然不想做射线trace，太慢了，这里我们仍然使用HBAO的撒点方法。</p>
+<p>SSDO是比较轻量级的算法，工业界应用广泛</p>
+<p>但是它仍然无法逃离一个问题：只要是我看不见的，我什么都不知道，且只能处理小范围GI</p>
+<h2 id="SSR-Screen-Space-Reflection"><a href="#SSR-Screen-Space-Reflection" class="headerlink" title="SSR(Screen Space Reflection)"></a>SSR(Screen Space Reflection)</h2><p>SSR同样是屏幕空间的全局光照技术，但是它是真的在屏幕空间做光线追踪。 </p>
+<p>SSR的关键在于反射，我们要想知道一个点的反射信息，我们先要知道它都能反射什么，一个基于现实的观察是：反射的东西大多都能在屏幕空间显示出来。</p>
+<p><img src="../images/image-20210517155244867.png" alt="image-20210517155244867"></p>
+<p>基本的SSR便是基于屏幕空间已经渲染出来的东西做的镜面反射</p>
+<p>具体是怎么做的？</p>
+<p>首先我们可以从屏幕空间射出一道光，根据法线和深度信息，可以做出一次反射，反射出一根（视场景粗糙度等而定，可能有多根）我们关心这道反射之后的光会和场景交于哪个点。</p>
+<p>最简单的考量就是我每次对于光线取一个步长往前查询，如果查询到深度比场景深度深，则发生了相交，如图</p>
+<p><img src="../images/image-20210517160019036.png" alt="image-20210517160019036"></p>
+<p>问题是步长该有多大，甚至来说如果能动态决定就更好了</p>
+<p>还真的有动态决定的方法。</p>
+<p>还记得MIPMAP吗？我们先对场景深度做MIPMAP，不同的是MIPMAP上一个像素不再记录上一层几个像素的平均深度，而是深度的最小值。</p>
+<p>这个加速结构就像path tracing里的层次结构一样，如果我连底层极深度最小的都碰不到，我怎么可能碰到这个层级这个像素覆盖到的所有像素呢？这东西本质是一个bbox。</p>
+<p>所以查询的方法就是：首先查询一个深度，如果没有碰到，那么加大MIPMAP层级，继续查询（步子更大），如果碰到了，减小MIPMAP层数（步子变小）</p>
+<p>这样我们就实现了trace</p>
+<p>具体的着色怎么办？其实我们完全可以把path tracing的方法拿来用（都是光追谁看不起谁）</p>
+<p>SSR是很好的实现屏幕空间反射的方法，当然它也有一些问题，集中在屏幕空间这一点，蒙特卡洛方法什么的都好</p>
+<p>比如下面这个</p>
+<p><img src="../images/image-20210517161833176.png" alt="image-20210517161833176"></p>
+<p>这个方法可以快速做glossy和specular的反射，这也是为什么很多以前的游戏看起来画面那么油（不diffuse，快）</p>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>图形学</tag>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Games202笔记——Real-time-Global-Illumination(1)</title>
+    <url>/2021/05/15/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Global-Illumination-1/</url>
+    <content><![CDATA[<h1 id="Glossy情况下的PRT"><a href="#Glossy情况下的PRT" class="headerlink" title="Glossy情况下的PRT"></a>Glossy情况下的PRT</h1><p>既然是图形学，那么我们先摆一个渲染方程在这</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{\Omega+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos{\theta_i}V(p,\omega_i)d\omega_i</script><p>现在我们认为p点已知，同时把渲染方程写成light和light transport形式，如下</p>
+<script type="math/tex; mode=display">
+L_o(\omega_o)\approx\int_{\Omega+}{L_i(\omega_i)T_i(\omega_i,\omega_o)}</script><p>注意到light transport项因为BRDF的关系，同时和入射方向和出射方向有关，意味着从任何一个不同的方向看，都会得出一组不同的向量，也就是说，PRT的结果现在是一个关于出射方向$\omega_o$的函数，如下所示</p>
+<script type="math/tex; mode=display">
+L_o(\omega_o)\approx\sum{c_iT_i(\omega_o)}</script><p>这样的话我们不如把light transport后的预计算结果视为一个矩阵，即</p>
+<script type="math/tex; mode=display">
+T_i(\omega_o)\approx\sum t_{ij}B_j(\omega_o)</script><p>也就是把不同o得到的vector摆在一起</p>
+<h1 id="PRT的问题"><a href="#PRT的问题" class="headerlink" title="PRT的问题"></a>PRT的问题</h1><p>1.SH不适合做高频（不是不能，阶数太多）</p>
+<p>2.预计算也就意味着场景被固定住了</p>
+<p>3.大量的预计算数据存储</p>
+<h1 id="Wavelet"><a href="#Wavelet" class="headerlink" title="Wavelet"></a>Wavelet</h1><p>Wavelet也是一系列基函数，其定义在一个图像块上，不同的小波定义域不同，下图所示的是Haar wavelet</p>
+<p><img src="../images/image-20210515185627873.png" alt="image-20210515185627873"></p>
+<p><del>差不多得了开新东西开新东西</del></p>
+<h1 id="三维空间中的全局光照-Global-illumination-GI"><a href="#三维空间中的全局光照-Global-illumination-GI" class="headerlink" title="三维空间中的全局光照(Global illumination,GI)"></a>三维空间中的全局光照(Global illumination,GI)</h1><p>传统的光栅化方法完全无法处理间接光照的问题，对于传统的Blin-Phong模型，GI通常用一个hack来解决，即增加一个Ambient项模拟全局光照，但是这种方法一点都不真实，我们还是需要一个全局光照的技术<del>光追闭嘴</del></p>
+<p>不是光追，咱还真的不能嗯用光线反弹，得用别的方法</p>
+<p>我们可以认为每一个发生反射的表面都视为一个光源，那么全局光照可以理解为主光源和所有次级光源共同对场景作用的结果。</p>
+<p>为了得到一个点的间接光照我们需要知道什么？我们需要知道以下两件事：</p>
+<p>1.场景中又哪些次级光源，也就是说哪里会被光源照到，很显然Shadow Map就能告诉我们这些</p>
+<p>2.每一个次级光源的贡献是多少？这部分问题的实质是解一个渲染方程</p>
+<p>全局光照是不关心观察方向的，但是众所周知渲染方程没有出射方向就解不了，这个问题应该如何解决呢？我们提出一个大胆的假设：我们认为所有的反射物都是diffuse的，也就是说BRDF是常数，从哪个方向看都是一样的。这样场景中有哪些次级光源，次级光源从哪个方向上照射点p就解决了</p>
+<h2 id="Reflective-Shadow-Maps-RSM"><a href="#Reflective-Shadow-Maps-RSM" class="headerlink" title="Reflective Shadow Maps(RSM)"></a>Reflective Shadow Maps(RSM)</h2><h3 id="RSM的实现"><a href="#RSM的实现" class="headerlink" title="RSM的实现"></a>RSM的实现</h3><p>首先回顾一下辐射度量学的三个基础概念</p>
+<p><img src="../images/image-20210516010051643.png" alt="image-20210516010051643"></p>
+<p>我们可以将一个光源对p点着色的贡献的计算从立体角微元转化为光源面积的微元，如图所示</p>
+<p><img src="../images/image-20210516010334978.png" alt="image-20210516010334978"></p>
+<p>这样渲染方程就被转化为了</p>
+<script type="math/tex; mode=display">
+L_o(p,\omega_o)=\int_{A_{patch}}L_i(q\to p)f_r(p,q \to p,\omega_o)V(p,\omega_i)\cfrac{\cos{\theta_p}\cos{\theta_q}}{||q-p||^2}dA</script><p>$q\to p$指q点到p点的radiance，我们如何解的radiance的大小？</p>
+<p>对于diffuse的情况，我们有结论$f_r=\rho/\pi$,而$L_i=f_r·\cfrac{\Phi}{dA}$，其中$\Phi$是光通量</p>
+<p>把上两式带入，我们就消去了dA，实际上我们不用关心光源的面积</p>
+<p>这样我们就知道了一个次级光源如何照亮着色点</p>
+<p>同时我们还有一个观察：离着色点较近的次级光源往往会带来比较大的贡献，这里我们假设在SM上离得近的两点在实际距离上也较近，因此我们在采样SM上的次级光源的时候可以在近点增加采样次数，远点减小采样次数，通过类似的采样方案可以极小的减少采样的次数，带来效率上的提升 </p>
+<p>这种方法对于类似手电筒这种光源非常的友好，现在也经常被使用</p>
+<h3 id="RSM的特点"><a href="#RSM的特点" class="headerlink" title="RSM的特点"></a>RSM的特点</h3><p>优点:</p>
+<p>​    1.很好实现</p>
+<p>缺点：</p>
+<p>​    1.凡是SM有的问题它都有</p>
+<p>​    2.因为不算反射物到着色点的遮挡，看起来会不真实</p>
+<h2 id="Light-Propagation-Volumes-LPV"><a href="#Light-Propagation-Volumes-LPV" class="headerlink" title="Light Propagation Volumes(LPV)"></a>Light Propagation Volumes(LPV)</h2><p>思考下面这个<del>看起来似乎不用思考的</del>问题：在做间接光照的时候，如果我可以获得一个点从所有方向来的radiance，我们才能做间接光照，对吧？</p>
+<p>LPV方法基于特别重要的物理事实，即radiance在传播的过程中总保持直线且不会改变。</p>
+<p>LPV的要点是把场景分成3D的网格，每一个网格称为体素(Voxel)，我们都知道间接光照的来源是场景中光的反射，现在我们想要知道经过类似的反射之后，场景中每一个体素内的光强是多少。</p>
+<p>LPV的实现涉及很多的问题，接下来仅针对LPV的实现逻辑进行讲解。<br>LPV的实现分为以下几个步骤：</p>
+<p>1.和RSM类似的，我们需要知道场景中哪些点可以作为次级光源</p>
+<p>2.这些点需要被放到体素里面，学名注入(injection)</p>
+<p>3.在三维的网格中传播radiance</p>
+<p>具体来讲，对于第一步的次级光源判断，我们仍然可以用RSM，同样也可以靠采样来获得一系列次级光源</p>
+<p>第二步注入，工业界的做法是生成一张3d texture来记录信息，对于每一个点我可以计算出radiance在每个方向上的分布，这是一个球面函数，可以用SH近似，一般在工业界只使用两阶</p>
+<p>第三步我们对于每个网格，都可以计算从六个面传播过来的radiance，并使用SH近似，迭代若干次， 直到整个网格稳定下来。</p>
+<p>这种方法听起来非常美好，那么代价是什么呢？</p>
+<p>就比如它本质还是忽略了场景遮挡，所以是存在“穿墙照亮”的情况的(light leaking)</p>
+<h2 id="Voxel-Global-Illumination-VXGI"><a href="#Voxel-Global-Illumination-VXGI" class="headerlink" title="Voxel Global Illumination(VXGI)"></a>Voxel Global Illumination(VXGI)</h2><p>VXGI和RSM一样是two-pass的算法，他和RSM的区别是什么呢？</p>
+<p>首先其把整个场景划分成了一个个格子（想象乐高），其次划分存在层次结构（参考kd树），这样每一个次级光源就是一个体素，而不是一个像素</p>
+<p>第二点是不同于LPV，radiance只传播一次，VXGI认为光打在场景表面会辐射出一个光锥，并对这个光锥进行cone tracing，由此可见比LPV慢，但也因为这个特性，其支持反射物表面是glossy的</p>
+<p>因为圆锥会越传播越大，所以对于不同的距离可以在不同的层级进行查询，效率会高很多</p>
+<p>如果是diffuse的情况，我们可能需要trace一个巨大的圆锥，这里我们选择几个小圆锥一起追踪，如图所示</p>
+<p><img src="../images/image-20210516170906079.png" alt="image-20210516170906079"></p>
+<p>VXGI的效果还是很不错的，就是开销有点大</p>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>图形学</tag>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Games202笔记——Real-time-Environment-mapping(2)</title>
     <url>/2021/05/14/Games202%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94Real-time-Environment-mapping-2/</url>
     <content><![CDATA[<h1 id="环境光照的阴影计算"><a href="#环境光照的阴影计算" class="headerlink" title="环境光照的阴影计算"></a>环境光照的阴影计算</h1><p><del>首先，最High level的答案是不知道怎么做</del></p>
